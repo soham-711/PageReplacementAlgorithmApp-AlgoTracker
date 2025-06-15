@@ -1,75 +1,157 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { api } from "@/convex/_generated/api";
+import { styles } from "@/styles/home.styles";
+import { useUser } from "@clerk/clerk-expo";
+import { useQuery } from "convex/react";
+import React from "react";
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { PieChart } from "react-native-chart-kit";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const screenWidth = Dimensions.get("window").width;
 
-export default function HomeScreen() {
+const Index = () => {
+  const { user } = useUser();
+
+  // 🔄 Fetch user data from Convex using clerkId
+  const userData = useQuery(api.users.getUserByClerkId, {
+    clerkId: user?.id || "",
+  });
+
+  const totalProgress =
+    (userData?.fifo || 0) + (userData?.lru || 0) + (userData?.optimal || 0);
+
+  // Show loading while fetching data
+  if (user && !userData) {
+    return (
+      <View style={{flex:1,justifyContent:"center",alignItems:"center"}}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
+
+  // Chart data based on user's real progress
+  const progressData = [
+    {
+      name: "FIFO",
+      count: userData?.fifo || 2,
+      color: "#FF6384",
+      legendFontColor: "#333",
+      legendFontSize: 14,
+    },
+    {
+      name: "LRU",
+      count: userData?.lru,
+      color: "#36A2EB",
+      legendFontColor: "#333",
+      legendFontSize: 14,
+    },
+    {
+      name: "Optimal",
+      count: userData?.optimal,
+      color: "#FFCE56",
+      legendFontColor: "#333",
+      legendFontSize: 14,
+    },
+  ];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
-}
+    <ScrollView style={styles.container}
+     contentContainerStyle={{ paddingBottom:16 }}
+  showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.heading}>Hi {userData?.fullname || "User"},</Text>
+      <Text style={styles.subheading}>
+        Here is your page replacement progress:
+      </Text>
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+      <View style={{ marginVertical: 16 }}>
+        {totalProgress > 0 ? (
+          <PieChart
+            data={progressData.map((item) => ({
+              name: item.name,
+              population: item.count,
+              color: item.color,
+              legendFontColor: item.legendFontColor,
+              legendFontSize: item.legendFontSize,
+            }))}
+            width={screenWidth - 32}
+            height={220}
+            chartConfig={{
+              color: () => "#000",
+              labelColor: () => "#000",
+            }}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="16"
+            style={styles.chart}
+            absolute
+          />
+        ) : (
+          <View
+            style={{
+              height: 200,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: 12,
+              backgroundColor: "#f4f4f4",
+            }}
+          >
+            <ActivityIndicator size="large" color="#666" />
+            <Text style={{ marginTop: 10, color: "#555" }}>
+              Waiting for your first progress...
+            </Text>
+          </View>
+        )}
+      </View>
+
+ {/* About AlgoTracker */}
+      <View style={styles.card}>
+        <Text style={{ fontSize: 22, color: "#2c3e50",fontWeight:700,marginBottom:5 }}>About AlgoTracker</Text>
+        <Text style={styles.aboutText}>
+          AlgoTracker is your personal companion for mastering memory management algorithms like FIFO, LRU, and Optimal.
+        </Text>
+        <Text style={styles.aboutText}>
+          Track your learning progress, understand page replacement strategies, and become confident in Operating System concepts — all in one place!
+        </Text>
+        <Text style={styles.aboutText}>
+          Stay consistent. Stay sharp. Welcome to smarter learning.
+        </Text>
+      </View>
+
+      <Text style={styles.docsHeading}>📚 Algorithm Documentation</Text>
+
+      <View style={styles.docCard}>
+        <Text style={styles.docTitle}>1. FIFO (First-In-First-Out)</Text>
+        <Text style={styles.docContent}>
+          FIFO is the simplest page replacement algorithm. The oldest page in
+          memory is the first to be replaced.
+        </Text>
+      </View>
+
+      <View style={styles.docCard}>
+        <Text style={styles.docTitle}>2. LRU (Least Recently Used)</Text>
+        <Text style={styles.docContent}>
+          LRU replaces the page that hasn't been used for the longest time. It
+          requires keeping track of the usage history of pages.
+        </Text>
+      </View>
+
+      <View style={styles.docCard}>
+        <Text style={styles.docTitle}>3. Optimal Page Replacement</Text>
+        <Text style={styles.docContent}>
+          The optimal algorithm replaces the page that will not be used for the
+          longest time in the future.
+        </Text>
+      </View>
+    </ScrollView>
+  );
+};
+
+export default Index;

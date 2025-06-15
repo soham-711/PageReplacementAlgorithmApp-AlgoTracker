@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "algotracker",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": false,
+      "package": "com.sohambiswas.AlgoTracker"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "71cb359c-76e9-44b3-8b5e-ceb1223b1526"
+      },
+      "clerkPublishableKey": "pk_live_YmVsb3ZlZC1tYXlmbHktODIuY2xlcmsuYWNjb3VudHMuZGV2JA",
+      "convexUrl": "https://adamant-bear-321.convex.cloud"
     }
   }
 }
